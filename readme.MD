@@ -1,13 +1,16 @@
+# Densify-Export-CSV
+
+<img src="https://www.densify.com/wp-content/uploads/densify.png" width="300">
+
 Place the contents of the repository in its own folder.  
 
-Command syntax:
+## Command syntax:
 
 .\Densify-Export-CSV.ps1 -instance <instancename>
 
 If you do not specify an instance name you will be prompted for one at runtime as well as a user name and password for the Densify instance.  To remember these values you can create environment variables named DensifyUser and DensifyPass respectively.  
 
-
-Repository contents:
+## Repository contents:
 
 Densify-Export-CSV.ps1 - 
 The actual script that pulls data from a customer instance and outputs it to a set of CSV files.
@@ -20,8 +23,7 @@ A CSV file of all the instance types and their properties for AWS, Azure, and GC
 
 These are two Excel templates that allow you to view, slice, and dice the data output by the script.
 
-
-Output files:
+## Output files:
 
 Each time you run the script it will create 4 output files as follows:
 
@@ -29,6 +31,8 @@ yyyy-mm-dd <instancename> Analyses.csv -- A list of the analyses in your Densify
 yyyy-mm-dd <instancename> Cloud Recommendations.csv -- A list of all cloud recommendations across all CSP. <br/>
 yyyy-mm-dd <instancename> Container Recommendations.csv -- A list of all container recommendations across all clusters. <br/>
 yyyy-mm-dd <instancename> Tags.csv -- A raw dump of all tags and values found in all instances.  One line per tag. <br/>
+
+## Notes
 
 Remember that you must be in a PowerShell prompt to run this script, not a command shell.  If you're new to using PowerShell and you can't run the script at all, open a PowerShell prompt as Administrator and run this command:
 
