@@ -5,6 +5,9 @@
 #  v3.3 - Added a calculation to multiple monthly cost by Avg Group Size for ASGs.  Added a column for Avg Group Size.
 #  v3.4 - Renamed the program to be more descriptive.  Removed functionality to copy the Excel template.
 #  v3.5 - Can now specify user and password using environment variables or you will be prompted.  Can no longer save them in a local file.
+#  v4.0 - Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.  
+#       - Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".
+#       - Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.
 #------------------------------------------------------------------------------------------------
 
 param (
@@ -50,6 +53,7 @@ $hHeaders = @{ "Accept"="application/json" }
 $aEndPoints = @( "aws", "azure", "gcp" )
 # $aEndPoints = @( "azure" )
 $aResourceTags = @()
+$aSoftwareIdentified = @()
 Write-Output "Using instance $sInstanceTitle"
 
 #
@@ -196,7 +200,7 @@ foreach( $sEndPoint in $aEndPoints ) {
 
             # Fully qualify the app owner report link
             # if( $oReco."rptHref" ) { $oReco."rptHref" = $sBaseUri + $oReco."rptHref".SubString( 1, $oReco."rptHref".Length - 1 ) }
-            
+
             foreach( $oAttribute in $oReco.Attributes ) { 
                 switch ( $oAttribute.name ) {
                     "Mem Util (%)" {
@@ -268,6 +272,16 @@ foreach( $sEndPoint in $aEndPoints ) {
                     "Kubernetes Cluster" {
                         $oReco."Kubernetes Cluster" = $oAttribute.value
                      } # switch case
+                    "mswcName" {
+                        $sConfidence = $oReco.Attributes | Where-Object { $_.id -eq "mswcConfidence" }
+                        $oSoftwareIdentified = [PSCustomObject]@{
+                            entityId = $oReco."entityId"
+                            "System Name" = $oReco."name"
+                            "Name" = $oAttribute.Value.Split( ":")[ 1 ]
+                            "Confidence" = $sConfidence[ [int]( $oAttribute.Value.Split( ":")[ 0 ] ) - 1 ].Value.Split( ":")[ 1 ]
+                        }
+                        $aSoftwareIdentified += $oSoftwareIdentified
+                    }
                     "Resource Tags" {
                         $oResourceTag = [PSCustomObject]@{
                             entityId = $oReco."entityId"
@@ -460,6 +474,7 @@ $aAllContainerRecos = $aAllContainerRecos | Select-Object @{ N="entityId"; E={ $
 $sAnalysesFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Analyses.csv"
 $sCloudFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Cloud Recommendations.csv"
 $sTagsFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Tags.csv"
+$sSoftwareFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Software Identified.csv"
 $sContainersFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Container Recommendations.csv"
 # $sExcelTemplateSource = $PSScriptRoot + "\Template.xlsb" 
 # $sExcelTemplateTarget = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Instance Export.xlsb"
@@ -489,6 +504,19 @@ else {
 $sOutString = "Writing list of " + $aResourceTags.Count + " tags and labels"
 Write-Output $sOutString
 $aResourceTags | ConvertTo-Csv | Out-File -FilePath $sTagsFile
+$sOutString = "Writing list of " + $aSoftwareIdentified.Count + " software instances identified"
+Write-Output $sOutString
+# Output only headers if the software identified is blank
+if( $aSoftwareIdentified.Count -eq 0 ) { 
+    $sOutstring = "entityId,System Name,Name,Confidence"
+    $sOutstring | Out-File -FilePath $sSoftwareFile
+    $sOutstring = ",,,"
+    $sOutstring | Out-File -FilePath $sSoftwareFile
+} 
+else {
+    $aSoftwareIdentified | ConvertTo-Csv | Out-File -FilePath $sSoftwareFile
+}
+
 # Write-Output "Writing Excel file"
 # Copy-Item $sExcelTemplateSource $sExcelTemplateTarget
 
