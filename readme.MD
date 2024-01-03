@@ -1,6 +1,6 @@
 # Densify-Export-CSV
 
-<img src="https://www.densify.com/wp-content/uploads/densify.png" width="200">
+<img src="https://www.densify.com/wp-content/uploads/densify.png" width="250">
 
 Place the contents of the repository in its own folder.  
 
