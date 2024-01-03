@@ -26,12 +26,13 @@ These are two Excel templates that allow you to view, slice, and dice the data o
 
 ## Output files:
 
-Each time you run the script it will create 4 output files as follows:
+Each time you run the script it will create 5 output files as follows:
 
 yyyy-mm-dd <instancename> Analyses.csv -- A list of the analyses in your Densify instance.  In most cases this is a list of accounts or subscriptions in which services were found that can be analyzed by the Densify engine. <br/>
 yyyy-mm-dd <instancename> Cloud Recommendations.csv -- A list of all cloud recommendations across all CSP. <br/>
 yyyy-mm-dd <instancename> Container Recommendations.csv -- A list of all container recommendations across all clusters. <br/>
 yyyy-mm-dd <instancename> Tags.csv -- A raw dump of all tags and values found in all instances.  One line per tag. <br/>
+yyyy-mm-dd <instancename> Software Identified.csv -- A raw dump of all software found in all instances and the confidence of the match.  One line per piece of software. <br/>
 
 ## Notes
 
