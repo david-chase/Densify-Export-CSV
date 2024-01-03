@@ -1,22 +1,31 @@
 ﻿#-----------------------------------------------------------------------------------------------
-#  Densify-Export-CSV v3.4
+#  Densify-Export-CSV v3.5
 #  PowerShell script to query a customer instance and export relevant information as a CSV 
 # 
 #  v3.3 - Added a calculation to multiple monthly cost by Avg Group Size for ASGs.  Added a column for Avg Group Size.
 #  v3.4 - Renamed the program to be more descriptive.  Removed functionality to copy the Excel template.
+#  v3.5 - Can now specify user and password using environment variables or you will be prompted.  Can no longer save them in a local file.
 #------------------------------------------------------------------------------------------------
 
 param (
    [string]$instance="",
-   [string]$user='dchase@densify.com', 
-   [string]$pass='oM2(hV(mcfBUj7wn',
+   [string]$user="", 
+   [string]$pass="",
    [Int32]$sleep = 0,
    [switch]$beep = $false
 )
 
-Write-Host -----------------------------------------------------------
-Write-Host " "qryInstance - Summarize data for a customer instance
-Write-Host -----------------------------------------------------------
+Write-Host 
+Write-Host ::: Densify-Export-CSV ::: -ForegroundColor Cyan
+Write-Host 
+
+# Suss out the user instance, user name, and password
+if( -not $user ) { $user = $env:DensifyUser }
+if( -not $pass ) { $pass = $env:DensifyPass }
+if( -not $instance ) { $instance = Read-Host -Prompt "Enter instance name" }
+if( ( -not $user ) -or ( -not $pass ) ) { Write-Host; Write-Host "Note: To remember your Densify credentials you may set environment variables named DensifyUser and DensifyPass respectively"; Write-Host }
+if( -not $user ) { $user = Read-Host -Prompt "Enter your Densify user id" }
+if( -not $pass ) { $pass = Read-Host -Prompt "Enter your Densify password" }
 
 $sPassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
 $oCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, $sPassword
