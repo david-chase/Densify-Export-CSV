@@ -47,9 +47,9 @@ Close and re-open your PowerShell prompt and you should be good to go!
 
 v4.0<br/>
 ---<br/>
-Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.  <br/>      - 
-Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".<br/>
-Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.<br/>
+* Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.  <br/>      - 
+* Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".<br/>
+* Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.<br/>
 
 v3.5<br/>
 ----<br/>
