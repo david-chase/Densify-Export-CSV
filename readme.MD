@@ -42,9 +42,9 @@ Set-ExecutionPolicy -ExecutionPolicy ByPass
 Close and re-open your PowerShell prompt and you should be good to go!
 
 ## Revision History
-v3.3 - Added a calculation to multiple monthly cost by Avg Group Size for ASGs.  Added a column for Avg Group Size.
-v3.4 - Renamed the program to be more descriptive.  Removed functionality to copy the Excel template.
-v3.5 - Can now specify user and password using environment variables or you will be prompted.  Can no longer save them in a local file.
-v4.0 - Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.        - 
-       Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".
-       Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.
+v3.3 - Added a calculation to multiple monthly cost by Avg Group Size for ASGs.  Added a column for Avg Group Size.<br/>
+v3.4 - Renamed the program to be more descriptive.  Removed functionality to copy the Excel template.<br/>
+v3.5 - Can now specify user and password using environment variables or you will be prompted.  Can no longer save them in a local file.<br/>
+v4.0 - Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.  <br/>      - 
+       Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".<br/>
+       Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.<br/>
