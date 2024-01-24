@@ -8,15 +8,39 @@
 #  v4.0 - Now exports "yyy-mm-dd <instance> Software Identified.csv" to show software identified in Public Cloud.  
 #       - Updated "1. Cloud and Containers" to gracefully handle CSVs that are missing the column "Avg Group Size".
 #       - Added "3. Software Identified.xlsb" for exploring the Software Identified csv file.
+#  v4.1 - Splitting the project into Densify-Export-CSV and Densify-Analyze-CSV.  
+#       - Adding the ability to specify a folder to save output to via command line or environmet variable
 #------------------------------------------------------------------------------------------------
 
 param (
    [string]$instance="",
    [string]$user="", 
    [string]$pass="",
+   [string]$output = "",
    [Int32]$sleep = 0,
    [switch]$beep = $false
 )
+
+# Return the right "X" characters of a string
+function RightStr {
+    param( 
+        [Parameter( Mandatory )]
+        [string]$sString,
+        [Parameter( Mandatory )]
+        [int]$iIndex
+    )
+
+        return $sString.Substring( $sString.Length - 1, $iIndex )
+} # END function RightStr
+
+function AddTrailBackslash {
+    param( 
+        [Parameter( Mandatory )]
+        [string]$sString
+    )
+
+    if( ( RightStr $sString 1 ) -ne "\" ) { return $sString + "\" } else { return $sString }
+} # END function AddTrailBackslash
 
 Write-Host 
 Write-Host ::: Densify-Export-CSV ::: -ForegroundColor Cyan
@@ -25,10 +49,12 @@ Write-Host
 # Suss out the user instance, user name, and password
 if( -not $user ) { $user = $env:DensifyUser }
 if( -not $pass ) { $pass = $env:DensifyPass }
+if( -not $output -and $env:DensifyOutput ) { $output = AddTrailBackslash -sString $env:DensifyOutput }
 if( -not $instance ) { $instance = Read-Host -Prompt "Enter instance name" }
 if( ( -not $user ) -or ( -not $pass ) ) { Write-Host; Write-Host "Note: To remember your Densify credentials you may set environment variables named DensifyUser and DensifyPass respectively"; Write-Host }
 if( -not $user ) { $user = Read-Host -Prompt "Enter your Densify user id" }
 if( -not $pass ) { $pass = Read-Host -Prompt "Enter your Densify password" }
+if( -not $output ) { $output = AddTrailBackslash -sString $PSScriptRoot }
 
 $sPassword = ConvertTo-SecureString -String $pass -AsPlainText -Force
 $oCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $user, $sPassword
@@ -187,7 +213,7 @@ foreach( $sEndPoint in $aEndPoints ) {
             } # switch( $oReco.SizingNotes )
 
             # Add the account friendly name
-            $aMatchingAccounts = $aAnalyses | where { $_.accountId -eq $oReco.accountIdRef }
+            $aMatchingAccounts = $aAnalyses | Where-Object { $_.accountId -eq $oReco.accountIdRef }
             $oReco."Account Friendly Name" = $aMatchingAccounts[ 0 ]."Account Friendly Name"
 
             # Convert UNIX epoch times to Windows DateTime
@@ -273,12 +299,18 @@ foreach( $sEndPoint in $aEndPoints ) {
                         $oReco."Kubernetes Cluster" = $oAttribute.value
                      } # switch case
                     "mswcName" {
-                        $sConfidence = $oReco.Attributes | Where-Object { $_.id -eq "mswcConfidence" }
+                        # Set the confidence level only if the attribute is found.
+                        if( $oReco.Attributes | Where-Object { $_.id -eq "mswcConfidence" } ) {
+                            $sConfidence = $oReco.Attributes | Where-Object { $_.id -eq "mswcConfidence" } 
+                            $sConfidence = $sConfidence[ [int]( $oAttribute.Value.Split( ":")[ 0 ] ) - 1 ].Value.Split( ":")[ 1 ] }
+                        else {
+                            $sConfidence = "n/a"
+                        }
                         $oSoftwareIdentified = [PSCustomObject]@{
                             entityId = $oReco."entityId"
                             "System Name" = $oReco."name"
                             "Name" = $oAttribute.Value.Split( ":")[ 1 ]
-                            "Confidence" = $sConfidence[ [int]( $oAttribute.Value.Split( ":")[ 0 ] ) - 1 ].Value.Split( ":")[ 1 ]
+                            "Confidence" = $sConfidence
                         }
                         $aSoftwareIdentified += $oSoftwareIdentified
                     }
@@ -471,13 +503,11 @@ $aAllContainerRecos = $aAllContainerRecos | Select-Object @{ N="entityId"; E={ $
     
 
 # Decide on all my output file names
-$sAnalysesFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Analyses.csv"
-$sCloudFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Cloud Recommendations.csv"
-$sTagsFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Tags.csv"
-$sSoftwareFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Software Identified.csv"
-$sContainersFile = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Container Recommendations.csv"
-# $sExcelTemplateSource = $PSScriptRoot + "\Template.xlsb" 
-# $sExcelTemplateTarget = "$PSScriptRoot" + "\" + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Instance Export.xlsb"
+$sAnalysesFile = $output + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Analyses.csv"
+$sCloudFile = $output + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Cloud Recommendations.csv"
+$sTagsFile = $output + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Tags.csv"
+$sSoftwareFile = $output + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Software Identified.csv"
+$sContainersFile = $output + ( Get-Date -Format "yyyy-MM-dd" ) + " " + $sInstanceTitle + " Container Recommendations.csv"
 
 # Dump results to a file
 $sOutString = "Writing " + $aAllAnalyses.Count + " analyses"
